@@ -45,6 +45,9 @@ jobs:
 
 
 
+      - name: Fix derive_arbitrary mismatch
+        run: cargo generate-lockfile && cargo update -p derive_arbitrary --precise 1.3.2
+
       - name: Test time-bank (12 tests)
         run: cargo test -p time-bank --features testutils -- --nocapture
 
