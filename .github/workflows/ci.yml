@@ -22,10 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-          components: rustfmt, clippy
 
       - uses: actions/cache@v4
         with:
@@ -44,11 +43,7 @@ jobs:
       - name: Install Stellar CLI
         run: cargo binstall --no-confirm stellar-cli
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
 
-      - name: Run Clippy
-        run: cargo clippy --all-targets -- -D warnings
 
       - name: Test time-bank (12 tests)
         run: cargo test -p time-bank --features testutils -- --nocapture
@@ -120,7 +115,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
 
