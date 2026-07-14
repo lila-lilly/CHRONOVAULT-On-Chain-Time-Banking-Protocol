@@ -1,0 +1,236 @@
+name: ChronoVault CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ─── Smart Contract Tests ───────────────────────────────────────────────────
+  contract-tests:
+    name: 🦀 Smart Contract Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            contracts/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contracts/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Soroban CLI
+        run: cargo install --locked soroban-cli --features opt 2>/dev/null || true
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test time-bank (12 tests)
+        run: cargo test -p time-bank --features testutils -- --nocapture
+
+      - name: Test community-ledger (9 tests)
+        run: cargo test -p community-ledger --features testutils -- --nocapture
+
+      - name: Build WASM contracts
+        run: |
+          cargo build --target wasm32-unknown-unknown --release -p time-bank
+          cargo build --target wasm32-unknown-unknown --release -p community-ledger
+
+      - name: Optimize WASM
+        run: |
+          soroban contract optimize \
+            --wasm target/wasm32-unknown-unknown/release/time_bank.wasm \
+            --wasm-out target/wasm32-unknown-unknown/release/time_bank.optimized.wasm
+          soroban contract optimize \
+            --wasm target/wasm32-unknown-unknown/release/community_ledger.wasm \
+            --wasm-out target/wasm32-unknown-unknown/release/community_ledger.optimized.wasm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-contracts
+          path: contracts/target/wasm32-unknown-unknown/release/*.optimized.wasm
+          retention-days: 30
+
+  # ─── Frontend Tests & Build ─────────────────────────────────────────────────
+  frontend-tests:
+    name: ⚡ Frontend Tests & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_TIME_BANK_ID:        ${{ secrets.TIME_BANK_ID        || 'PLACEHOLDER' }}
+          VITE_COMMUNITY_LEDGER_ID: ${{ secrets.COMMUNITY_LEDGER_ID || 'PLACEHOLDER' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 7
+
+  # ─── Deploy Contracts (main only) ──────────────────────────────────────────
+  deploy-contracts:
+    name: 🚀 Deploy to Testnet
+    needs: [contract-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: contracts
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/
+            contracts/target/
+          key: ${{ runner.os }}-cargo-deploy-${{ hashFiles('contracts/Cargo.lock') }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-contracts
+          path: contracts/target/wasm32-unknown-unknown/release/
+
+      - name: Install Soroban CLI
+        run: cargo install --locked soroban-cli --features opt 2>/dev/null || true
+
+      - name: Configure network
+        run: |
+          soroban network add \
+            --rpc-url https://soroban-testnet.stellar.org \
+            --network-passphrase "Test SDF Network ; September 2015" \
+            testnet || true
+
+      - name: Fund deployer
+        run: |
+          soroban keys generate deployer --network testnet 2>/dev/null || true
+          curl -s "https://friendbot.stellar.org?addr=$(soroban keys address deployer)" | jq .
+
+      - name: Deploy CommunityLedger
+        id: deploy-ledger
+        run: |
+          LEDGER_ID=$(soroban contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/community_ledger.optimized.wasm \
+            --source deployer --network testnet)
+          echo "LEDGER_ID=$LEDGER_ID" >> $GITHUB_OUTPUT
+          echo "CommunityLedger: $LEDGER_ID"
+
+      - name: Deploy TimeBank
+        id: deploy-bank
+        run: |
+          BANK_ID=$(soroban contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/time_bank.optimized.wasm \
+            --source deployer --network testnet)
+          echo "BANK_ID=$BANK_ID" >> $GITHUB_OUTPUT
+          echo "TimeBank: $BANK_ID"
+
+      - name: Initialize contracts
+        run: |
+          DEPLOYER=$(soroban keys address deployer)
+          LEDGER_ID="${{ steps.deploy-ledger.outputs.LEDGER_ID }}"
+          BANK_ID="${{ steps.deploy-bank.outputs.BANK_ID }}"
+
+          soroban contract invoke --id "$LEDGER_ID" \
+            --source deployer --network testnet \
+            -- initialize --admin "$DEPLOYER" --bank_address "$BANK_ID"
+
+          soroban contract invoke --id "$BANK_ID" \
+            --source deployer --network testnet \
+            -- initialize --admin "$DEPLOYER" --ledger_address "$LEDGER_ID"
+
+          # Mint starter credits to deployer
+          soroban contract invoke --id "$BANK_ID" \
+            --source deployer --network testnet \
+            -- mint --admin "$DEPLOYER" --recipient "$DEPLOYER" --amount 100
+
+          echo "✅ Contracts initialized with cross-references"
+
+      - name: Save deployment manifest
+        run: |
+          mkdir -p ../deployment
+          cat > ../deployment/testnet.json << EOF
+          {
+            "network":          "testnet",
+            "deployed_at":      "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit":           "${{ github.sha }}",
+            "time_bank":        "${{ steps.deploy-bank.outputs.BANK_ID }}",
+            "community_ledger": "${{ steps.deploy-ledger.outputs.LEDGER_ID }}"
+          }
+          EOF
+          cat ../deployment/testnet.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deployment-manifest
+          path: deployment/testnet.json
+
+  # ─── Deploy Frontend ────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: 🌐 Deploy Frontend to Vercel
+    needs: [deploy-contracts, frontend-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token:      ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id:     ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: frontend
+          vercel-args: '--prod'

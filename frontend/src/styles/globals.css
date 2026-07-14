@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: #080C14;
+    color: #CBD5E1;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Blueprint grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none; z-index: 0;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #080C14; }
+  ::-webkit-scrollbar-thumb { background: #1C2840; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+}
+
+@layer components {
+
+  /* ── Vault card ─────────────────────────────────────────────────────────── */
+  .vault-card {
+    @apply relative overflow-hidden rounded-lg border border-white/[0.06];
+    background: linear-gradient(145deg, #141D2E 0%, #0E1420 100%);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .vault-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%);
+    pointer-events: none; border-radius: inherit;
+  }
+
+  /* ── Gold-accented task card ────────────────────────────────────────────── */
+  .task-card {
+    @apply vault-card transition-all duration-200;
+  }
+  .task-card:hover {
+    border-color: rgba(212,168,67,0.2);
+    box-shadow: 0 0 0 1px rgba(212,168,67,0.08), 0 12px 40px rgba(0,0,0,0.6);
+    transform: translateY(-1px);
+  }
+
+  /* ── Buttons ────────────────────────────────────────────────────────────── */
+  .btn-gold {
+    @apply relative overflow-hidden rounded-md px-5 py-2.5 font-body font-semibold text-sm transition-all duration-200;
+    background: linear-gradient(135deg, #D4A843, #F0C96A);
+    color: #080C14;
+    box-shadow: 0 0 0 1px rgba(212,168,67,0.4), 0 0 20px rgba(212,168,67,0.15);
+  }
+  .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(240,201,106,0.6), 0 0 28px rgba(212,168,67,0.3); }
+  .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-blue {
+    @apply relative overflow-hidden rounded-md px-5 py-2.5 font-body font-semibold text-sm transition-all duration-200;
+    background: #3B82F6;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.4), 0 0 20px rgba(59,130,246,0.15);
+  }
+  .btn-blue:hover { background: #60A5FA; transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(96,165,250,0.6), 0 0 24px rgba(59,130,246,0.3); }
+
+  .btn-ghost {
+    @apply rounded-md border border-white/10 px-5 py-2.5 font-body text-sm text-muted transition-all duration-200;
+  }
+  .btn-ghost:hover { @apply border-blue/30 text-silver; }
+
+  /* ── Input ──────────────────────────────────────────────────────────────── */
+  .chrono-input {
+    @apply w-full rounded-md border border-white/10 bg-black/20 px-4 py-2.5 font-body text-sm text-silver placeholder:text-muted/50 transition-all duration-200;
+  }
+  .chrono-input:focus { @apply outline-none border-blue/40 ring-1 ring-blue/20; }
+
+  /* ── Badge ──────────────────────────────────────────────────────────────── */
+  .standing-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display;
+  }
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-mono font-medium;
+  }
+
+  /* ── Label ──────────────────────────────────────────────────────────────── */
+  .label {
+    @apply text-[10px] font-clock uppercase tracking-[0.15em] text-muted;
+  }
+
+  /* ── Time credit display ────────────────────────────────────────────────── */
+  .time-display {
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Gold gradient text */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #D4A843 0%, #F0C96A 50%, #D4A843 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Clockface ring */
+.clock-ring {
+  border-radius: 50%;
+  border: 2px solid rgba(212,168,67,0.35);
+  box-shadow:
+    0 0 0 4px rgba(212,168,67,0.06),
+    inset 0 0 16px rgba(212,168,67,0.08);
+}
+
+/* Tick mark decoration */
+.tick-marks {
+  position: relative;
+}
+.tick-marks::before, .tick-marks::after {
+  content: '';
+  position: absolute;
+  width: 1px; height: 6px;
+  background: rgba(212,168,67,0.4);
+}
+.tick-marks::before { top: 0; left: 50%; transform: translateX(-50%); }
+.tick-marks::after  { bottom: 0; left: 50%; transform: translateX(-50%); }
+
+/* Animated clock SVG hand */
+@keyframes second-hand {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.second-hand { animation: second-hand 60s linear infinite; transform-origin: center; }
+.minute-hand { animation: second-hand 3600s linear infinite; transform-origin: center; }
