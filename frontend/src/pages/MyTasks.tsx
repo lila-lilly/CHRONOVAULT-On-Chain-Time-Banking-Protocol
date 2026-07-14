@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import TaskCard from '../components/TaskCard'
-import { MOCK_TASKS } from '../lib/mockData'
 import { useChronoStore } from '../lib/store'
 import type { TaskStatus } from '../lib/store'
 import { clsx } from 'clsx'
@@ -14,7 +13,7 @@ const TABS: { label: string; value: TaskStatus | 'all' }[] = [
 ]
 
 export default function MyTasks() {
-  const { isConnected, setTab } = useChronoStore()
+  const { isConnected, setTab, tasks, pubKey } = useChronoStore()
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all')
 
   if (!isConnected) {
@@ -30,12 +29,13 @@ export default function MyTasks() {
     )
   }
 
-  const filtered = MOCK_TASKS.filter(t => filter === 'all' || t.status === filter)
+  const myTasks = tasks.filter(t => t.requester === pubKey || t.provider === pubKey)
+  const filtered = myTasks.filter(t => filter === 'all' || t.status === filter)
 
   const stats = {
-    asProvider:  MOCK_TASKS.filter(t => t.status === 'Completed').length,
-    asRequester: MOCK_TASKS.filter(t => ['Open','Claimed','Submitted'].includes(t.status)).length,
-    inProgress:  MOCK_TASKS.filter(t => t.status === 'Claimed').length,
+    asProvider:  myTasks.filter(t => t.status === 'Completed' && t.provider === pubKey).length,
+    asRequester: myTasks.filter(t => ['Open','Claimed','Submitted'].includes(t.status) && t.requester === pubKey).length,
+    inProgress:  myTasks.filter(t => t.status === 'Claimed' && t.provider === pubKey).length,
   }
 
   return (
@@ -43,7 +43,7 @@ export default function MyTasks() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-3xl text-silver">My Tasks</h1>
-          <p className="text-sm text-muted mt-0.5">{MOCK_TASKS.length} tasks on record</p>
+          <p className="text-sm text-muted mt-0.5">{myTasks.length} tasks on record</p>
         </div>
         <button onClick={() => setTab('post')} className="btn-gold text-xs py-2">+ Post Task</button>
       </div>
@@ -78,8 +78,8 @@ export default function MyTasks() {
             {t.label}
             <span className="ml-1.5 text-muted">
               ({t.value === 'all'
-                ? MOCK_TASKS.length
-                : MOCK_TASKS.filter(x => x.status === t.value).length})
+                ? myTasks.length
+                : myTasks.filter(x => x.status === t.value).length})
             </span>
           </button>
         ))}

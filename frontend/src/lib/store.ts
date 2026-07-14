@@ -106,11 +106,43 @@ export const useChronoStore = create<ChronoStore>((set, get) => ({
     try {
       const { pubKey, isConnected } = get();
       if (isConnected && pubKey) {
-        const balTx = await timeBankClient.get_balance({ user: pubKey });
-        const bal = balTx.result;
-        set({ timeBalance: Number(bal) });
-        // NOTE: In a full app we'd fetch profile/leaderboard from community-ledger.
+        // Fetch balance
+        try {
+          const balTx = await timeBankClient.get_balance({ user: pubKey });
+          set({ timeBalance: Number(balTx.result) });
+        } catch (e) { console.error("Balance error", e) }
       }
+
+      // Fetch tasks (unauthenticated read)
+      const totalTx = await timeBankClient.get_total_tasks();
+      const total = Number(totalTx.result);
+      
+      const fetchedTasks = [];
+      for (let i = 1; i <= total; i++) {
+        try {
+          const tx = await timeBankClient.get_task({ task_id: BigInt(i) });
+          const result = tx.result;
+          if (result) {
+            const statusMap = ["Open", "Claimed", "Submitted", "Completed", "Cancelled", "Disputed"];
+            fetchedTasks.push({
+              id: Number(i),
+              requester: result.requester,
+              provider: result.provider,
+              title: result.title,
+              description: result.description,
+              category: result.category,
+              hours: Number(result.hours),
+              deadline: Number(result.deadline),
+              status: statusMap[result.status.tag] as any,
+              created_at: Number(result.created_at),
+              completed_at: Number(result.completed_at),
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to fetch task ${i}`, err);
+        }
+      }
+      set({ tasks: fetchedTasks.sort((a, b) => b.created_at - a.created_at) });
     } catch (e) {
       console.error("Failed to fetch data", e);
     }

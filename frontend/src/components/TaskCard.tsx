@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Task } from '../lib/store'
 import StatusPill from './StatusPill'
 import { truncAddr, formatDeadline, timeAgo } from '../lib/mockData'
+import { timeBankClient, signAndSubmit } from '../lib/contract'
 import { useChronoStore } from '../lib/store'
 import { clsx } from 'clsx'
 
@@ -19,11 +20,18 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
   const canConfirm  = isRequester && task.status === 'Submitted'
   const canDispute  = (isProvider || isRequester) && ['Claimed','Submitted'].includes(task.status)
 
-  const act = async (label: string, msg: string, success: string) => {
-    setLoading(label)
-    await new Promise(r => setTimeout(r, 1400))
-    setLoading(null)
-    addToast('success', success)
+  const act = async (label: string, txFn: () => Promise<any>, success: string) => {
+    try {
+      setLoading(label)
+      const hash = await signAndSubmit(txFn)
+      addToast('success', success, `https://stellar.expert/explorer/testnet/tx/${hash}`)
+      await useChronoStore.getState().refreshData()
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      addToast('error', `Transaction failed: ${msg}`)
+    } finally {
+      setLoading(null)
+    }
   }
 
   const isExpired = task.deadline < Math.floor(Date.now() / 1000) && task.status === 'Open'
@@ -73,11 +81,11 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
       </div>
 
       {/* Actions */}
-      {!compact && (isClaimer || canSubmit || canConfirm || canDispute) && (
+      {!compact && (isClaimer || canSubmit || canConfirm || canDispute || isRequester) && (
         <div className="flex gap-2 pt-4 border-t border-white/[0.05]">
           {isClaimer && (
             <button
-              onClick={() => act('claim', '', `Task #${task.id} claimed! Start working and submit when done.`)}
+              onClick={() => act('claim', async () => await timeBankClient.claim_task({ task_id: BigInt(task.id), provider: pubKey }), `Task #${task.id} claimed! Start working and submit when done.`)}
               disabled={!!loading || isExpired}
               className="btn-blue text-xs py-1.5 px-4 flex items-center gap-1.5"
             >
@@ -87,7 +95,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {canSubmit && (
             <button
-              onClick={() => act('submit', '', `Work submitted for task #${task.id}. Awaiting requester confirmation.`)}
+              onClick={() => act('submit', async () => await timeBankClient.submit_work({ task_id: BigInt(task.id), provider: pubKey }), `Work submitted for task #${task.id}. Awaiting requester confirmation.`)}
               disabled={!!loading}
               className="btn-gold text-xs py-1.5 px-4 flex items-center gap-1.5"
             >
@@ -97,20 +105,29 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {canConfirm && (
             <button
-              onClick={() => act('confirm', '', `Task #${task.id} confirmed! ${task.hours} TIME credits transferred.`)}
+              onClick={() => act('confirm', async () => await timeBankClient.confirm_completion({ task_id: BigInt(task.id), requester: pubKey }), `Task #${task.id} confirmed! ${task.hours} TIME credits transferred.`)}
               disabled={!!loading}
               className="btn-gold text-xs py-1.5 px-4"
             >
               {loading === 'confirm' ? <Loader2 size={12} className="animate-spin" /> : 'Confirm & Pay'}
             </button>
           )}
+          {isRequester && task.status === 'Open' && !isExpired && (
+            <button
+              onClick={() => act('cancel', async () => await timeBankClient.cancel_task({ task_id: BigInt(task.id), requester: pubKey }), `Task #${task.id} cancelled.`)}
+              disabled={!!loading}
+              className="btn-ghost text-xs py-1.5 px-3 border-white/20 text-muted hover:border-white/40"
+            >
+              {loading === 'cancel' ? <Loader2 size={12} className="animate-spin" /> : 'Cancel Task'}
+            </button>
+          )}
           {canDispute && (
             <button
-              onClick={() => act('dispute', '', `Dispute raised for task #${task.id}.`)}
+              onClick={() => act('dispute', async () => await timeBankClient.dispute_task({ task_id: BigInt(task.id), caller: pubKey }), `Dispute raised for task #${task.id}.`)}
               disabled={!!loading}
               className="btn-ghost text-xs py-1.5 px-3 border-ruby/20 text-ruby hover:border-ruby/40"
             >
-              Dispute
+              {loading === 'dispute' ? <Loader2 size={12} className="animate-spin" /> : 'Dispute'}
             </button>
           )}
         </div>

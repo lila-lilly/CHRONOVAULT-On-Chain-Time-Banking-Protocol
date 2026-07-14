@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import Navigation from './components/Navigation'
 import Toasts from './components/Toasts'
 import Board from './pages/Board'
@@ -7,7 +8,13 @@ import Profile from './pages/Profile'
 import { useChronoStore } from './lib/store'
 
 export default function App() {
-  const { activeTab } = useChronoStore()
+  const { activeTab, refreshData } = useChronoStore()
+
+  useEffect(() => {
+    refreshData()
+    const interval = setInterval(refreshData, 10000)
+    return () => clearInterval(interval)
+  }, [refreshData])
   return (
     <div className="min-h-screen relative">
       <div className="relative z-10">

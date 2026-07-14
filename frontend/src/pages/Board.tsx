@@ -3,7 +3,7 @@ import { Search, Clock, Users, CheckCircle, Zap } from 'lucide-react'
 import TaskCard from '../components/TaskCard'
 import StandingBadge from '../components/StandingBadge'
 import ClockFace from '../components/ClockFace'
-import { MOCK_TASKS, MOCK_PROFILES, truncAddr } from '../lib/mockData'
+import { MOCK_PROFILES, truncAddr } from '../lib/mockData'
 import { useChronoStore } from '../lib/store'
 import { TASK_CATEGORIES } from '../lib/constants'
 import type { TaskStatus } from '../lib/store'
@@ -17,14 +17,14 @@ const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
 ]
 
 export default function Board() {
-  const { setTab } = useChronoStore()
+  const { setTab, tasks } = useChronoStore()
   const [search, setSearch]     = useState('')
   const [filter, setFilter]     = useState<TaskStatus | 'all'>('all')
   const [category, setCategory] = useState('')
 
-  const totalHours = MOCK_TASKS.filter(t => t.status === 'Completed').reduce((s, t) => s + t.hours, 0)
+  const totalHours = tasks.filter(t => t.status === 'Completed').reduce((s, t) => s + t.hours, 0)
 
-  const filtered = MOCK_TASKS.filter(t => {
+  const filtered = tasks.filter(t => {
     const fStatus   = filter === 'all' || t.status === filter
     const fCat      = !category || t.category === category
     const fSearch   = !search || t.title.toLowerCase().includes(search.toLowerCase())
@@ -63,7 +63,7 @@ export default function Board() {
         {[
           { icon: Clock,        label: 'Hours Exchanged', value: `${totalHours + 847}h` },
           { icon: Users,        label: 'Members',         value: MOCK_PROFILES.length + 312 },
-          { icon: CheckCircle,  label: 'Tasks Completed', value: MOCK_TASKS.filter(t => t.status === 'Completed').length + 124 },
+          { icon: CheckCircle,  label: 'Tasks Completed', value: tasks.filter(t => t.status === 'Completed').length + 124 },
           { icon: Zap,          label: 'TIME in Circulation', value: '2,847' },
         ].map(s => {
           const Icon = s.icon
