@@ -9,7 +9,7 @@ resolver = "2"
 ethnum = { path = "ethnum" }
 
 [workspace.dependencies]
-soroban-sdk = { version = "20.0.0", features = ["testutils"] }
+soroban-sdk = { version = "20.0.0" }
 
 [profile.release]
 opt-level = "z"
