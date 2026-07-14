@@ -8,29 +8,33 @@ import { MOCK_PROFILES } from '../lib/mockData'
 import { STANDING_META } from '../lib/constants'
 
 export default function Profile() {
-  const { isConnected, pubKey, setWallet, disconnect, setProfile, setTimeBalance, timeBalance, profile, addToast } = useChronoStore()
-  const [secretInput, setSecretInput] = useState('')
-  const [showSecret,  setShowSecret]  = useState(false)
-  const [loading,     setLoading]     = useState(false)
+  const { isConnected, pubKey, setWallet, disconnect, setProfile, setTimeBalance, timeBalance, profile, addToast, initWalletKit } = useChronoStore()
+  const [loading, setLoading] = useState(false)
 
   const handleConnect = async () => {
     setLoading(true)
     try {
-      const kp = secretInput.trim() ? Keypair.fromSecret(secretInput.trim()) : Keypair.random()
-      if (!secretInput.trim()) addToast('info', 'New testnet keypair generated — save your secret key!')
+      initWalletKit();
+      const kit = useChronoStore.getState().walletKit;
+      if (!kit) throw new Error("Wallet kit not initialized");
 
-      setWallet(kp.publicKey(), kp.secret())
+      await kit.openModal({
+        onWalletSelected: async (option) => {
+          kit.setWallet(option.id);
+          const publicKey = await kit.getPublicKey();
+          setWallet(publicKey);
 
-      // Use first mock profile as demo data
-      const mock = MOCK_PROFILES[0]
-      setProfile({ ...mock, member: kp.publicKey() })
-      setTimeBalance(24) // bootstrap balance
-      addToast('success', 'Wallet connected! You have 24 TIME credits.')
-    } catch {
-      addToast('error', 'Invalid secret key format')
+          // Use first mock profile as demo data for now (since we haven't wired up community ledger read yet)
+          const mock = MOCK_PROFILES[0]
+          setProfile({ ...mock, member: publicKey })
+          setTimeBalance(24) // bootstrap balance
+          addToast('success', 'Freighter Wallet connected! You have 24 TIME credits.')
+        }
+      });
+    } catch (e: any) {
+      addToast('error', e.message || 'Failed to connect wallet')
     } finally {
       setLoading(false)
-      setSecretInput('')
     }
   }
 
@@ -48,29 +52,11 @@ export default function Profile() {
         </div>
 
         <div className="vault-card p-6 space-y-4" style={{ borderColor: 'rgba(212,168,67,0.15)' }}>
-          <div>
-            <label className="label block mb-2">Secret Key</label>
-            <div className="relative">
-              <input
-                type={showSecret ? 'text' : 'password'}
-                className="chrono-input pr-10 font-mono text-xs"
-                placeholder="S… (leave empty to generate new)"
-                value={secretInput}
-                onChange={e => setSecretInput(e.target.value)}
-              />
-              <button onClick={() => setShowSecret(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-silver">
-                {showSecret ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </div>
-          </div>
           <div className="text-xs text-muted bg-black/20 rounded-md p-3 border border-white/[0.05]">
-            ⚠ Testnet only. Never paste a mainnet secret key.
+            Please install the <a href="https://www.freighter.app/" target="_blank" rel="noreferrer" className="text-blue-lt hover:underline">Freighter</a> browser extension and switch to Testnet before connecting.
           </div>
           <button onClick={handleConnect} disabled={loading} className="btn-gold w-full flex items-center justify-center gap-2 py-3">
-            {loading
-              ? <><Loader2 size={14} className="animate-spin" />Connecting…</>
-              : secretInput ? 'Connect Wallet' : 'Generate & Connect'
-            }
+            {loading ? <><Loader2 size={14} className="animate-spin" />Connecting…</> : 'Connect Freighter Wallet'}
           </button>
         </div>
       </div>

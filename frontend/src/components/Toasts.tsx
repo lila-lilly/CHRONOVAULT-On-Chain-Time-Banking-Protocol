@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Info, X } from 'lucide-react'
+import { CheckCircle, XCircle, Info, X, ExternalLink } from 'lucide-react'
 import { useChronoStore } from '../lib/store'
 
 export default function Toasts() {
@@ -12,7 +12,14 @@ export default function Toasts() {
           {n.type === 'success' && <CheckCircle size={15} style={{ color: '#34D399' }} className="shrink-0 mt-0.5" />}
           {n.type === 'error'   && <XCircle     size={15} className="text-ruby shrink-0 mt-0.5" />}
           {n.type === 'info'    && <Info         size={15} className="text-gold shrink-0 mt-0.5" />}
-          <p className="text-sm text-silver flex-1 leading-snug">{n.message}</p>
+          <div className="flex-1">
+            <p className="text-sm text-silver leading-snug">{n.message}</p>
+            {n.link && (
+              <a href={n.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-xs text-blue-lt hover:underline">
+                View on Stellar Expert <ExternalLink size={10} />
+              </a>
+            )}
+          </div>
           <button onClick={() => removeToast(n.id)} className="text-muted hover:text-silver shrink-0"><X size={13} /></button>
         </div>
       ))}

@@ -4,6 +4,7 @@ import { clsx } from 'clsx'
 import { useChronoStore } from '../lib/store'
 import { TASK_CATEGORIES, DEADLINE_OPTIONS } from '../lib/constants'
 import { truncAddr } from '../lib/mockData'
+import { signAndSubmit, timeBankClient } from '../lib/contract'
 
 export default function PostTask() {
   const { isConnected, pubKey, timeBalance, addToast, setTab } = useChronoStore()
@@ -23,12 +24,19 @@ export default function PostTask() {
 
     setSubmitting(true)
     try {
-      await new Promise(r => setTimeout(r, 2000))
-      const hash = Array.from({ length: 64 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')
+      const hash = await signAndSubmit(() => timeBankClient.post_task({
+        requester: pubKey,
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        hours: form.hours,
+        deadline_offset: BigInt(form.deadline),
+      }));
+
       setTxHash(hash)
-      addToast('success', `Task posted! ${form.hours} TIME escrowed on-chain.`)
-    } catch (e) {
-      addToast('error', `Failed: ${e instanceof Error ? e.message : 'Unknown'}`)
+      addToast('success', `Task posted! ${form.hours} TIME escrowed on-chain.`, `https://stellar.expert/explorer/testnet/tx/${hash}`)
+    } catch (e: any) {
+      addToast('error', `Failed: ${e.message || 'Unknown'}`)
     } finally {
       setSubmitting(false)
     }
