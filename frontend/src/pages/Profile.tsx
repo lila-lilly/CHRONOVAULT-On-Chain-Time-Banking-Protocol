@@ -4,7 +4,7 @@ import { Eye, EyeOff, Loader2, Copy, ExternalLink, TrendingUp, Clock, CheckCircl
 import { useChronoStore } from '../lib/store'
 import StandingBadge from '../components/StandingBadge'
 import ClockFace from '../components/ClockFace'
-import { MOCK_PROFILES, truncAddr } from '../lib/mockData'
+import { MOCK_PROFILES } from '../lib/mockData'
 import { STANDING_META } from '../lib/constants'
 
 export default function Profile() {
