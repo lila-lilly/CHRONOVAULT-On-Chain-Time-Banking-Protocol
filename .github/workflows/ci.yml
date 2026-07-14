@@ -38,8 +38,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('contracts/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Install Soroban CLI
-        run: cargo install --locked soroban-cli --features opt 2>/dev/null || true
+      - name: Install cargo-binstall
+        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - name: Install Stellar CLI
+        run: cargo binstall --no-confirm stellar-cli
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -60,12 +63,10 @@ jobs:
 
       - name: Optimize WASM
         run: |
-          soroban contract optimize \
-            --wasm target/wasm32-unknown-unknown/release/time_bank.wasm \
-            --wasm-out target/wasm32-unknown-unknown/release/time_bank.optimized.wasm
-          soroban contract optimize \
-            --wasm target/wasm32-unknown-unknown/release/community_ledger.wasm \
-            --wasm-out target/wasm32-unknown-unknown/release/community_ledger.optimized.wasm
+          stellar contract optimize \
+            --wasm target/wasm32-unknown-unknown/release/time_bank.wasm
+          stellar contract optimize \
+            --wasm target/wasm32-unknown-unknown/release/community_ledger.wasm
 
       - uses: actions/upload-artifact@v4
         with:
@@ -136,25 +137,28 @@ jobs:
           name: wasm-contracts
           path: contracts/target/wasm32-unknown-unknown/release/
 
-      - name: Install Soroban CLI
-        run: cargo install --locked soroban-cli --features opt 2>/dev/null || true
+      - name: Install cargo-binstall
+        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - name: Install Stellar CLI
+        run: cargo binstall --no-confirm stellar-cli
 
       - name: Configure network
         run: |
-          soroban network add \
+          stellar network add \
             --rpc-url https://soroban-testnet.stellar.org \
             --network-passphrase "Test SDF Network ; September 2015" \
             testnet || true
 
       - name: Fund deployer
         run: |
-          soroban keys generate deployer --network testnet 2>/dev/null || true
-          curl -s "https://friendbot.stellar.org?addr=$(soroban keys address deployer)" | jq .
+          stellar keys generate deployer --network testnet 2>/dev/null || true
+          curl -s "https://friendbot.stellar.org?addr=$(stellar keys address deployer)" | jq .
 
       - name: Deploy CommunityLedger
         id: deploy-ledger
         run: |
-          LEDGER_ID=$(soroban contract deploy \
+          LEDGER_ID=$(stellar contract deploy \
             --wasm target/wasm32-unknown-unknown/release/community_ledger.optimized.wasm \
             --source deployer --network testnet)
           echo "LEDGER_ID=$LEDGER_ID" >> $GITHUB_OUTPUT
@@ -163,7 +167,7 @@ jobs:
       - name: Deploy TimeBank
         id: deploy-bank
         run: |
-          BANK_ID=$(soroban contract deploy \
+          BANK_ID=$(stellar contract deploy \
             --wasm target/wasm32-unknown-unknown/release/time_bank.optimized.wasm \
             --source deployer --network testnet)
           echo "BANK_ID=$BANK_ID" >> $GITHUB_OUTPUT
@@ -171,20 +175,20 @@ jobs:
 
       - name: Initialize contracts
         run: |
-          DEPLOYER=$(soroban keys address deployer)
+          DEPLOYER=$(stellar keys address deployer)
           LEDGER_ID="${{ steps.deploy-ledger.outputs.LEDGER_ID }}"
           BANK_ID="${{ steps.deploy-bank.outputs.BANK_ID }}"
 
-          soroban contract invoke --id "$LEDGER_ID" \
+          stellar contract invoke --id "$LEDGER_ID" \
             --source deployer --network testnet \
             -- initialize --admin "$DEPLOYER" --bank_address "$BANK_ID"
 
-          soroban contract invoke --id "$BANK_ID" \
+          stellar contract invoke --id "$BANK_ID" \
             --source deployer --network testnet \
             -- initialize --admin "$DEPLOYER" --ledger_address "$LEDGER_ID"
 
           # Mint starter credits to deployer
-          soroban contract invoke --id "$BANK_ID" \
+          stellar contract invoke --id "$BANK_ID" \
             --source deployer --network testnet \
             -- mint --admin "$DEPLOYER" --recipient "$DEPLOYER" --amount 100
 
