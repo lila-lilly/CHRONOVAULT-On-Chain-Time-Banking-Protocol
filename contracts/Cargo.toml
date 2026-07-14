@@ -5,6 +5,9 @@ members = [
 ]
 resolver = "2"
 
+[patch.crates-io]
+ethnum = { path = "ethnum" }
+
 [workspace.dependencies]
 soroban-sdk = { version = "20.0.0", features = ["testutils"] }
 
