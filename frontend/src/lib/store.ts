@@ -101,6 +101,7 @@ export const useChronoStore = create<ChronoStore>((set, get) => ({
     set(s => ({ toasts: [...s.toasts, { id, type, message, link }] }))
     setTimeout(() => get().removeToast(id), 4500)
   },
+  removeToast: (id: string) => set(s => ({ toasts: s.toasts.filter(n => n.id !== id) })),
   refreshData: async () => {
     try {
       const { pubKey, isConnected } = get();

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Keypair } from '@stellar/stellar-sdk'
-import { Eye, EyeOff, Loader2, Copy, ExternalLink, TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { Loader2, Copy, ExternalLink, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { useChronoStore } from '../lib/store'
 import StandingBadge from '../components/StandingBadge'
 import ClockFace from '../components/ClockFace'
@@ -21,18 +20,19 @@ export default function Profile() {
       await kit.openModal({
         onWalletSelected: async (option) => {
           kit.setWallet(option.id);
-          const publicKey = await kit.getPublicKey();
-          setWallet(publicKey);
+          const { address } = await kit.getAddress();
+          setWallet(address);
 
           // Use first mock profile as demo data for now (since we haven't wired up community ledger read yet)
           const mock = MOCK_PROFILES[0]
-          setProfile({ ...mock, member: publicKey })
+          setProfile({ ...mock, member: address })
           setTimeBalance(24) // bootstrap balance
           addToast('success', 'Freighter Wallet connected! You have 24 TIME credits.')
         }
       });
-    } catch (e: any) {
-      addToast('error', e.message || 'Failed to connect wallet')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      addToast('error', `Failed to connect wallet: ${msg}`)
     } finally {
       setLoading(false)
     }

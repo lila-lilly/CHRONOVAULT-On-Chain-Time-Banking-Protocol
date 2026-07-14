@@ -35,8 +35,9 @@ export default function PostTask() {
 
       setTxHash(hash)
       addToast('success', `Task posted! ${form.hours} TIME escrowed on-chain.`, `https://stellar.expert/explorer/testnet/tx/${hash}`)
-    } catch (e: any) {
-      addToast('error', `Failed: ${e.message || 'Unknown'}`)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      addToast('error', `Failed: ${msg}`)
     } finally {
       setSubmitting(false)
     }
