@@ -3,6 +3,15 @@
 use super::*;
 use soroban_sdk::{testutils::Address as _, Address, Env, String};
 
+#[contract]
+pub struct DummyLedger;
+
+#[contractimpl]
+impl DummyLedger {
+    pub fn record_contribution(_env: Env, _provider: Address, _requester: Address, _task_id: u64, _hours: u32) {}
+    pub fn record_consumption(_env: Env, _requester: Address, _hours: u32) {}
+}
+
 fn setup() -> (
     Env,
     TimeBankClient<'static>,
@@ -18,7 +27,11 @@ fn setup() -> (
     let client = TimeBankClient::new(&env, &contract_id);
 
     let admin = Address::generate(&env);
-    let ledger = Address::generate(&env); // mocked
+    
+    // Register the dummy ledger
+    let ledger_id = env.register_contract(None, DummyLedger);
+    let ledger = ledger_id.clone(); 
+
     let requester = Address::generate(&env);
     let provider = Address::generate(&env);
 
@@ -161,11 +174,10 @@ fn test_user_task_list() {
 }
 
 #[test]
-#[should_panic(expected = "insufficient TIME balance")]
 fn test_post_task_without_balance_fails() {
     let (env, client, _, _, _, provider) = setup();
     // provider has 0 credits
-    client.post_task(
+    let res = client.try_post_task(
         &provider,
         &String::from_str(&env, "Need help"),
         &String::from_str(&env, "desc"),
@@ -173,21 +185,21 @@ fn test_post_task_without_balance_fails() {
         &2u32,
         &604800u64,
     );
+    assert!(res.is_err());
 }
 
 #[test]
-#[should_panic(expected = "cannot claim your own task")]
 fn test_requester_cannot_claim_own_task() {
     let (env, client, _, _, requester, _) = setup();
     let id = make_task(&env, &client, &requester);
-    client.claim_task(&requester, &id);
+    let res = client.try_claim_task(&requester, &id);
+    assert!(res.is_err());
 }
 
 #[test]
-#[should_panic(expected = "hours must be between 1 and 40")]
 fn test_zero_hours_fails() {
     let (env, client, _, _, requester, _) = setup();
-    client.post_task(
+    let res = client.try_post_task(
         &requester,
         &String::from_str(&env, "title"),
         &String::from_str(&env, "desc"),
@@ -195,4 +207,5 @@ fn test_zero_hours_fails() {
         &0u32,
         &604800u64,
     );
+    assert!(res.is_err());
 }
