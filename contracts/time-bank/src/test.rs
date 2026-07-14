@@ -3,17 +3,24 @@
 use super::*;
 use soroban_sdk::{testutils::Address as _, Address, Env, String};
 
-fn setup() -> (Env, TimeBankClient<'static>, Address, Address, Address, Address) {
+fn setup() -> (
+    Env,
+    TimeBankClient<'static>,
+    Address,
+    Address,
+    Address,
+    Address,
+) {
     let env = Env::default();
     env.mock_all_auths();
 
     let contract_id = env.register_contract(None, TimeBank);
-    let client      = TimeBankClient::new(&env, &contract_id);
+    let client = TimeBankClient::new(&env, &contract_id);
 
-    let admin     = Address::generate(&env);
-    let ledger    = Address::generate(&env); // mocked
+    let admin = Address::generate(&env);
+    let ledger = Address::generate(&env); // mocked
     let requester = Address::generate(&env);
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
 
     client.initialize(&admin, &ledger);
 
@@ -97,9 +104,9 @@ fn test_submit_work() {
 #[test]
 fn test_full_task_lifecycle_transfers_credits() {
     let (env, client, _, _, requester, provider) = setup();
-    let req_balance_before  = client.get_balance(&requester);
+    let req_balance_before = client.get_balance(&requester);
     let prov_balance_before = client.get_balance(&provider);
-    let supply_before       = client.get_total_supply();
+    let supply_before = client.get_total_supply();
 
     let id = make_task(&env, &client, &requester); // escrow 3 credits
     client.claim_task(&provider, &id);

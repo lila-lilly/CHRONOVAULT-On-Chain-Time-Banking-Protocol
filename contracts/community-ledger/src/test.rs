@@ -7,9 +7,9 @@ fn setup() -> (Env, CommunityLedgerClient<'static>, Address, Address) {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, CommunityLedger);
-    let client      = CommunityLedgerClient::new(&env, &contract_id);
+    let client = CommunityLedgerClient::new(&env, &contract_id);
     let admin = Address::generate(&env);
-    let bank  = Address::generate(&env);
+    let bank = Address::generate(&env);
     client.initialize(&admin, &bank);
     (env, client, admin, bank)
 }
@@ -24,7 +24,7 @@ fn test_initialize() {
 #[test]
 fn test_record_contribution_creates_profile() {
     let (env, client, _, _) = setup();
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
     let requester = Address::generate(&env);
 
     client.record_contribution(&provider, &requester, &0u64, &4u32);
@@ -38,7 +38,7 @@ fn test_record_contribution_creates_profile() {
 #[test]
 fn test_record_consumption_updates_requester() {
     let (env, client, _, _) = setup();
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
     let requester = Address::generate(&env);
 
     client.record_contribution(&provider, &requester, &0u64, &3u32);
@@ -52,7 +52,7 @@ fn test_record_consumption_updates_requester() {
 #[test]
 fn test_score_increases_with_contributions() {
     let (env, client, _, _) = setup();
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
     let requester = Address::generate(&env);
 
     client.record_contribution(&provider, &requester, &0u64, &2u32);
@@ -66,12 +66,15 @@ fn test_score_increases_with_contributions() {
 
 #[test]
 fn test_standing_progression() {
-    assert_eq!(CommunityLedger::score_to_standing(0),    Standing::Seedling);
-    assert_eq!(CommunityLedger::score_to_standing(99),   Standing::Seedling);
-    assert_eq!(CommunityLedger::score_to_standing(100),  Standing::Grower);
-    assert_eq!(CommunityLedger::score_to_standing(250),  Standing::Contributor);
-    assert_eq!(CommunityLedger::score_to_standing(500),  Standing::Steward);
-    assert_eq!(CommunityLedger::score_to_standing(800),  Standing::Pillar);
+    assert_eq!(CommunityLedger::score_to_standing(0), Standing::Seedling);
+    assert_eq!(CommunityLedger::score_to_standing(99), Standing::Seedling);
+    assert_eq!(CommunityLedger::score_to_standing(100), Standing::Grower);
+    assert_eq!(
+        CommunityLedger::score_to_standing(250),
+        Standing::Contributor
+    );
+    assert_eq!(CommunityLedger::score_to_standing(500), Standing::Steward);
+    assert_eq!(CommunityLedger::score_to_standing(800), Standing::Pillar);
     assert_eq!(CommunityLedger::score_to_standing(1200), Standing::Elder);
     assert_eq!(CommunityLedger::score_to_standing(9999), Standing::Elder);
 }
@@ -103,7 +106,7 @@ fn test_score_never_negative() {
 #[test]
 fn test_contribution_log_recorded() {
     let (env, client, _, _) = setup();
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
     let requester = Address::generate(&env);
 
     client.record_contribution(&provider, &requester, &42u64, &5u32);
@@ -118,7 +121,7 @@ fn test_contribution_log_recorded() {
 #[test]
 fn test_multiple_contributions_accumulate() {
     let (env, client, _, _) = setup();
-    let provider  = Address::generate(&env);
+    let provider = Address::generate(&env);
     let requester = Address::generate(&env);
 
     client.record_contribution(&provider, &requester, &0u64, &2u32);
