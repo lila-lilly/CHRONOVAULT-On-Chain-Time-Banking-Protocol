@@ -316,11 +316,9 @@ impl TimeBank {
 
     /// Admin mints initial TIME credits to bootstrap members
     pub fn mint(env: Env, admin: Address, recipient: Address, amount: u64) {
-        admin.require_auth();
-        let stored_admin: Address = env.storage().instance().get(&ADMIN).unwrap();
-        if admin != stored_admin {
-            panic!("not admin");
-        }
+        // For testnet purposes, we bypass the admin check and allow anyone to act as a faucet
+        // We require the recipient to authorize it so people can mint to themselves
+        recipient.require_auth();
 
         Self::ensure_member(&env, &recipient);
         let balance = Self::get_balance_inner(&env, &recipient);
