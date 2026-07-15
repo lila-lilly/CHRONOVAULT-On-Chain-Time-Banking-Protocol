@@ -2,28 +2,66 @@
 
 > **One hour of any skill = one TIME credit. Contribute, earn, repeat.**
 
-[![CI/CD](https://github.com/yourusername/chronovault/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/chronovault/actions)
+[![CI/CD](https://github.com/lila-lilly/CHRONOVAULT-On-Chain-Time-Banking-Protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/lila-lilly/CHRONOVAULT-On-Chain-Time-Banking-Protocol/actions)
 [![Stellar Testnet](https://img.shields.io/badge/Stellar-Testnet-3B82F6?logo=stellar)](https://stellar.expert/explorer/testnet)
 [![License: MIT](https://img.shields.io/badge/License-MIT-D4A843.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-22D3EE)](https://chronovault-on-chain-time-banking-p.vercel.app/)
+
+---
+
+## 🔗 Live Demo & Video Pitch
+
+- **🌐 Live Platform**: [chronovault-on-chain-time-banking-p.vercel.app](https://chronovault-on-chain-time-banking-p.vercel.app/)
+- **🎥 Demo Video**: [Watch the Demo on Google Drive](https://drive.google.com/file/d/10kqwr4ZqTU2JcF2iZX3gRfh_xBseblYb/view?usp=sharing)
 
 ---
 
 ## 🕰 What is ChronoVault?
 
-ChronoVault is a **decentralized time banking protocol** built on Stellar Soroban. Inspired by the global time banking movement — where communities exchange services using time as the unit of value — ChronoVault brings this model on-chain.
+ChronoVault is a **decentralized time banking protocol** built on Stellar Soroban. Inspired by the global time banking movement — where communities exchange services using time as the unit of value — ChronoVault brings this model fully on-chain.
 
 **The core idea:** 1 hour of your Rust expertise equals 1 hour of UI design, which equals 1 hour of copywriting. Skills are equal. Your `TIME` credits can be earned by helping others and spent to get help yourself. Your contribution history is public, permanent, and verified by smart contracts.
 
-### Why this stands out
+### Why ChronoVault stands out
 
-| Feature | ChronoVault | Typical DeFi Vault |
+| Feature | ChronoVault | Typical DeFi Protocol |
 |---|---|---|
 | Domain | Time economy / community | Token yield farming |
 | Inter-contract calls | ✅ Bank → Ledger on completion | ❌ |
-| Credit minting logic | ✅ Earned by contributing | ❌ Simple deposit |
+| Credit earning | ✅ Earned by contributing | ❌ Simple deposit |
 | Task lifecycle | ✅ 6-state machine with escrow | ❌ |
 | Community score | ✅ Give/take ratio algorithm | ❌ |
 | Social mechanics | ✅ Claim, submit, confirm, dispute | ❌ |
+
+---
+
+## 🌟 Key Features
+
+1. **⏳ TIME Credit Economy** — `1 hour = 1 TIME`. Post tasks, escrow credits, pay contributors upon completion
+2. **🔗 Dual Smart Contracts** — `TimeBank` handles the task economy; `CommunityLedger` tracks contribution history via inter-contract calls
+3. **🔐 Real Wallet Integration** — Full Freighter wallet connection with live on-chain balance, auto-reconnect on page load, and cryptographic signing on the Stellar Testnet
+4. **📋 6-State Task Machine** — Open → Claimed → Submitted → Completed (with Cancel & Dispute branches), all enforced on-chain
+5. **🏅 Community Standings** — 6-tier reputation system (Seedling → Elder) calculated from give/take ratios
+6. **💎 Premium UI** — Midnight Clockwork design with animated SVG clock, blueprint grid, glassmorphism, gold accents, and smooth micro-animations. Fully mobile responsive
+
+---
+
+## 📸 Platform Gallery & Submission Requirements
+
+### Main UI
+<img src="images/product ui.png" width="100%" alt="ChronoVault Main Interface" />
+
+### Profile & Community Standing
+<img src="images/product profile.png" width="100%" alt="Profile and Community Standing" />
+
+### Mobile Responsive UI
+<img src="images/mobile UI.png" width="100%" alt="Mobile Responsive UI" />
+
+### CI/CD Pipeline Running
+<img src="images/ci cd.png" width="100%" alt="GitHub Actions CI/CD Pipeline" />
+
+### Test Output (9+ Passing Tests)
+<img src="images/test output.png" width="100%" alt="Smart Contract Test Output" />
 
 ---
 
@@ -64,20 +102,34 @@ ChronoVault is a **decentralized time banking protocol** built on Stellar Soroba
 
 ---
 
+## 🔗 Deployed Contracts (Stellar Testnet)
+
+| Contract | Address |
+|---|---|
+| **TimeBank** | `CDTHOHTPANEA5IODFI2C7TXGAPDLURCBZNB7MEOITBLXJNY2VAM2XAZO` |
+| **CommunityLedger** | `CASUHYOA2PPKPIBAL7VI24Q76XOTXCLGTWYPYL3J7N5L4HDN6AC7QBDE` |
+
+**Example Transaction Hash (contract interaction):**
+[`a0995b06fdaf2ffa0b7f81c51dd3217e9907d7e389fa811a4e8d97a205c87718`](https://stellar.expert/explorer/testnet/tx/a0995b06fdaf2ffa0b7f81c51dd3217e9907d7e389fa811a4e8d97a205c87718)
+
+→ [View on Stellar Expert Testnet Explorer](https://stellar.expert/explorer/testnet)
+
+---
+
 ## 📜 Smart Contracts
 
 ### `time-bank` — The Exchange Engine
 
 | Function | Description |
 |---|---|
-| `initialize(admin, ledger)` | One-time setup |
+| `initialize(admin, ledger)` | One-time setup, registers admin and ledger cross-reference |
 | `post_task(requester, title, desc, category, hours, deadline)` | Post task; **escrows TIME credits** |
 | `claim_task(provider, task_id)` | Provider claims the task |
-| `submit_work(provider, task_id)` | Mark work as done |
+| `submit_work(provider, task_id)` | Mark work as done, moves to review |
 | `confirm_completion(requester, task_id)` | Confirm + **transfer credits + inter-contract call** |
 | `cancel_task(requester, task_id)` | Cancel Open task; **refunds escrow** |
-| `dispute_task(caller, task_id)` | Raise dispute |
-| `mint(admin, recipient, amount)` | Bootstrap member credits |
+| `dispute_task(caller, task_id)` | Raise dispute on a task |
+| `mint(admin, recipient, amount)` | Bootstrap/faucet member credits |
 | `get_balance(user)` | TIME credit balance |
 | `get_user_tasks(user)` | All tasks for an address |
 
@@ -125,31 +177,26 @@ score = max(0, score)                 ← floor at 0
 ## 🚀 Quick Start
 
 ```bash
-# Rust + wasm target
+# Prerequisites: Rust + wasm target
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup target add wasm32-unknown-unknown
 
 # Soroban CLI
-cargo install soroban-cli --features opt
+cargo install stellar-cli --features opt
 
-# Frontend
-cd frontend && npm install && npm run dev
+# Clone and run frontend
+git clone https://github.com/lila-lilly/CHRONOVAULT-On-Chain-Time-Banking-Protocol
+cd CHRONOVAULT-On-Chain-Time-Banking-Protocol/frontend
+npm install
+npm run dev
 ```
 
-### One-command testnet deploy
+### Run Smart Contract Tests
 
 ```bash
-chmod +x scripts/deploy.sh && ./scripts/deploy.sh
-```
-
-### Run tests
-
-```bash
-# Rust tests
-cd contracts && cargo test --features testutils -- --nocapture
-
-# Frontend tests
-cd frontend && npm test
+cd contracts
+cargo test -p time-bank --features testutils -- --nocapture
+cargo test -p community-ledger --features testutils -- --nocapture
 ```
 
 ---
@@ -160,20 +207,18 @@ cd frontend && npm test
 chronovault/
 ├── .github/workflows/ci.yml         # CI: test → build → deploy → vercel
 ├── contracts/
-│   ├── Cargo.toml
 │   ├── time-bank/src/
 │   │   ├── lib.rs                   # 6-state task machine, TIME escrow
-│   │   └── test.rs                  # 12 unit tests
+│   │   └── test.rs                  # 9 unit tests
 │   └── community-ledger/src/
 │       ├── lib.rs                   # Give/take scoring, inter-contract receiver
 │       └── test.rs                  # 9 unit tests
 ├── frontend/src/
 │   ├── components/                  # ClockFace, StandingBadge, StatusPill, TaskCard, Nav
 │   ├── pages/                       # Board, PostTask, MyTasks, Profile
-│   ├── lib/                         # store, constants, mockData
-│   ├── styles/globals.css           # Midnight blue clockwork aesthetic
-│   └── test/chronovault.test.tsx    # 35+ Vitest test cases
-├── scripts/deploy.sh
+│   ├── lib/                         # store.ts, contract.ts, constants
+│   └── index.css                    # Midnight Clockwork design system
+├── images/                          # Submission screenshots
 └── README.md
 ```
 
@@ -181,43 +226,29 @@ chronovault/
 
 ## 🧪 Test Coverage
 
-### Rust Tests — 21 total
+### Rust Tests — 18 total
 
-**`time-bank`** (12 tests):
-- `test_initialize`
-- `test_mint_increases_balance_and_supply`
-- `test_post_task_escrows_credits`
-- `test_claim_task`
-- `test_submit_work`
-- `test_full_task_lifecycle_transfers_credits`
-- `test_cancel_open_task_refunds_credits`
-- `test_dispute_task`
-- `test_user_task_list`
-- `test_post_task_without_balance_fails`
-- `test_requester_cannot_claim_own_task`
-- `test_zero_hours_fails`
+**`time-bank`** (9 tests):
+- `test_initialize` — contract init and admin registration
+- `test_mint_increases_balance_and_supply` — minting increments balances
+- `test_post_task_escrows_credits` — TIME locked on post
+- `test_claim_task` — provider claims open task
+- `test_submit_work` — provider submits for review
+- `test_full_task_lifecycle_transfers_credits` — end-to-end credit transfer
+- `test_cancel_open_task_refunds_credits` — escrow refund on cancel
+- `test_dispute_task` — dispute state transition
+- `test_user_task_list` — per-user task index
 
 **`community-ledger`** (9 tests):
 - `test_initialize`
 - `test_record_contribution_creates_profile`
 - `test_record_consumption_updates_requester`
 - `test_score_increases_with_contributions`
-- `test_standing_progression` — all 6 boundaries
+- `test_standing_progression` — all 6 tier boundaries
 - `test_give_ratio_bonus_rewards_givers`
 - `test_score_never_negative`
 - `test_contribution_log_recorded`
 - `test_multiple_contributions_accumulate`
-
-### Frontend Tests (Vitest) — 35+ cases
-- `truncAddr`, `timeAgo`, `formatDeadline` utilities
-- `MOCK_TASKS` integrity (6 tests)
-- `MOCK_PROFILES` sort order
-- `STANDING_META` structure and ascending mins
-- `TASK_STATUS_META` completeness
-- Community score algorithm (8 tests)
-- TIME credit escrow logic (7 tests)
-- `StandingBadge` component (4 tests)
-- `StatusPill` component (5 tests)
 
 ---
 
@@ -237,7 +268,7 @@ Signature elements:
 - **Animated SVG clock** — live rotating hands in the logo and hero
 - **Clock rings** — gold-bordered circles for credit amounts
 - **Space Mono** — monospaced clock typography for TIME amounts
-- **Task cards** — gold hover glow with `translateY(-1px)` lift
+- **Task cards** — gold hover glow with smooth lift animations
 
 ---
 
@@ -247,42 +278,44 @@ Signature elements:
 push to main
     │
     ├── 🦀 contract-tests
-    │   ├── cargo fmt + clippy
-    │   ├── cargo test time-bank (12 tests)
+    │   ├── cargo test time-bank (9 tests)
     │   ├── cargo test community-ledger (9 tests)
     │   └── wasm build + optimize
     │
-    ├── ⚡ frontend-tests
-    │   ├── eslint
-    │   ├── vitest (35+ tests)
+    ├── ⚡ frontend-lint
+    │   ├── eslint (strict)
     │   └── vite build
     │
     └── 🚀 deploy (main only)
-        ├── Deploy CommunityLedger
-        ├── Deploy TimeBank
-        ├── Initialize (cross-references)
-        ├── Mint starter credits
+        ├── Deploy CommunityLedger → testnet
+        ├── Deploy TimeBank → testnet
+        ├── Initialize (cross-references contracts)
+        ├── Mint starter credits to deployer
         └── vercel --prod
 ```
 
 ---
 
-## 🔗 Deployed Contracts
+## ✅ Submission Checklist
 
-| Contract | Address |
-|---|---|
-| TimeBank | `See deployment/testnet.json` |
-| CommunityLedger | `See deployment/testnet.json` |
-
-→ [Stellar Expert Testnet Explorer](https://stellar.expert/explorer/testnet)
+- [x] Public GitHub repository
+- [x] README with complete documentation
+- [x] 10+ meaningful commits
+- [x] Live demo on Vercel
+- [x] Contract deployment addresses (TimeBank + CommunityLedger)
+- [x] Transaction hash for on-chain interaction
+- [x] Screenshot: Mobile responsive UI
+- [x] Screenshot: CI/CD pipeline running
+- [x] Screenshot: Test output (9+ passing tests)
+- [x] Demo video link (Google Drive)
 
 ---
 
 ## 📄 License
 
-MIT © 2024 ChronoVault
+MIT © 2025 ChronoVault
 
 ---
 
-*Built for the Stellar Hackathon — Level 3 Orange Belt.*  
+*Built for the Stellar Hackathon.*  
 *"Time is the only truly equal currency."*
