@@ -20,7 +20,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
   const canConfirm  = isRequester && task.status === 'Submitted'
   const canDispute  = (isProvider || isRequester) && ['Claimed','Submitted'].includes(task.status)
 
-  const act = async (label: string, txFn: () => Promise<any>, success: string) => {
+  const act = async (label: string, txFn: () => Promise<unknown>, success: string) => {
     try {
       setLoading(label)
       const hash = await signAndSubmit(txFn)

@@ -123,7 +123,6 @@ export const useChronoStore = create<ChronoStore>((set, get) => ({
           const tx = await timeBankClient.get_task({ task_id: BigInt(i) });
           const result = tx.result;
           if (result) {
-            const statusMap = ["Open", "Claimed", "Submitted", "Completed", "Cancelled", "Disputed"];
             fetchedTasks.push({
               id: Number(i),
               requester: result.requester,
@@ -133,7 +132,7 @@ export const useChronoStore = create<ChronoStore>((set, get) => ({
               category: result.category,
               hours: Number(result.hours),
               deadline: Number(result.deadline),
-              status: statusMap[result.status.tag] as any,
+              status: result.status.tag as TaskStatus,
               created_at: Number(result.created_at),
               completed_at: Number(result.completed_at),
             });
