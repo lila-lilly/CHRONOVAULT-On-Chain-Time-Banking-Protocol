@@ -118,7 +118,7 @@ export const useChronoStore = create<ChronoStore>((set, get) => ({
       const total = Number(totalTx.result);
       
       const fetchedTasks = [];
-      for (let i = 1; i <= total; i++) {
+      for (let i = 0; i < total; i++) {
         try {
           const tx = await timeBankClient.get_task({ task_id: BigInt(i) });
           const result = tx.result;
