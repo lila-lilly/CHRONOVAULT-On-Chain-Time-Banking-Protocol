@@ -1,7 +1,7 @@
 import { Client as TimeBankClient, networks } from './time_bank/src/index';
 import { useChronoStore } from './store';
 
-export const TIME_BANK_CONTRACT_ID = networks.testnet.contractId;
+export const TIME_BANK_CONTRACT_ID = import.meta.env.VITE_TIME_BANK_ID || networks.testnet.contractId;
 export const NETWORK_PASSPHRASE = networks.testnet.networkPassphrase;
 
 export const timeBankClient = new TimeBankClient({
