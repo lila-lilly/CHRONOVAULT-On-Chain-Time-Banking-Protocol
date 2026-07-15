@@ -100,6 +100,24 @@ export default function Profile() {
               onClick={async () => {
                 setLoading(true)
                 try {
+                  const hash = await signAndSubmit(async () => await timeBankClient.initialize({ admin: pubKey, ledger_address: import.meta.env.VITE_COMMUNITY_LEDGER_ID }))
+                  addToast('success', 'Contract Initialized!', `https://stellar.expert/explorer/testnet/tx/${hash}`)
+                } catch (e: unknown) {
+                  const msg = e instanceof Error ? e.message : 'Unknown error';
+                  addToast('error', `Init failed: ${msg}`)
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+              className="btn-ghost py-1 text-[10px] px-3 border-blue/20 text-blue-lt"
+            >
+              Initialize Contract
+            </button>
+            <button
+              onClick={async () => {
+                setLoading(true)
+                try {
                   const hash = await signAndSubmit(async () => await timeBankClient.mint({ admin: pubKey, recipient: pubKey, amount: BigInt(100) }))
                   addToast('success', 'Minted 100 TIME!', `https://stellar.expert/explorer/testnet/tx/${hash}`)
                   useChronoStore.getState().refreshData()
