@@ -5,6 +5,7 @@ import StandingBadge from '../components/StandingBadge'
 import ClockFace from '../components/ClockFace'
 import { MOCK_PROFILES } from '../lib/mockData'
 import { STANDING_META } from '../lib/constants'
+import { timeBankClient, signAndSubmit } from '../lib/contract'
 
 export default function Profile() {
   const { isConnected, pubKey, setWallet, disconnect, setProfile, setTimeBalance, timeBalance, profile, addToast, initWalletKit } = useChronoStore()
@@ -94,10 +95,31 @@ export default function Profile() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-lt animate-pulse" />
             <span className="font-clock text-muted">Testnet · Active</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock size={12} className="text-gold" />
-            <span className="time-display text-xl font-bold text-gold-gradient">{timeBalance}</span>
-            <span className="font-clock text-xs text-muted uppercase">TIME</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={async () => {
+                setLoading(true)
+                try {
+                  const hash = await signAndSubmit(async () => await timeBankClient.mint({ admin: pubKey, recipient: pubKey, amount: BigInt(100) }))
+                  addToast('success', 'Minted 100 TIME!', `https://stellar.expert/explorer/testnet/tx/${hash}`)
+                  useChronoStore.getState().refreshData()
+                } catch (e: unknown) {
+                  const msg = e instanceof Error ? e.message : 'Unknown error';
+                  addToast('error', `Mint failed (Are you admin?): ${msg}`)
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+              className="btn-ghost py-1 text-[10px] px-3"
+            >
+              Faucet (Admin Only)
+            </button>
+            <div className="flex items-center gap-2">
+              <Clock size={12} className="text-gold" />
+              <span className="time-display text-xl font-bold text-gold-gradient">{timeBalance}</span>
+              <span className="font-clock text-xs text-muted uppercase">TIME</span>
+            </div>
           </div>
         </div>
       </div>

@@ -35,6 +35,7 @@ export default function PostTask() {
 
       setTxHash(hash)
       addToast('success', `Task posted! ${form.hours} TIME escrowed on-chain.`, `https://stellar.expert/explorer/testnet/tx/${hash}`)
+      useChronoStore.getState().refreshData()
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
       addToast('error', `Failed: ${msg}`)
