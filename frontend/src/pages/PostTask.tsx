@@ -31,7 +31,7 @@ export default function PostTask() {
         category: form.category,
         hours: form.hours,
         deadline_offset: BigInt(form.deadline),
-      }));
+      }, { publicKey: pubKey }));
 
       setTxHash(hash)
       addToast('success', `Task posted! ${form.hours} TIME escrowed on-chain.`, `https://stellar.expert/explorer/testnet/tx/${hash}`)

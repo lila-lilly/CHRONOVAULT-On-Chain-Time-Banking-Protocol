@@ -100,7 +100,7 @@ export default function Profile() {
               onClick={async () => {
                 setLoading(true)
                 try {
-                  const hash = await signAndSubmit(async () => await timeBankClient.mint({ admin: pubKey, recipient: pubKey, amount: BigInt(100) }))
+                  const hash = await signAndSubmit(async () => await timeBankClient.mint({ admin: pubKey, recipient: pubKey, amount: BigInt(100) }, { publicKey: pubKey }))
                   addToast('success', 'Minted 100 TIME!', `https://stellar.expert/explorer/testnet/tx/${hash}`)
                   useChronoStore.getState().refreshData()
                 } catch (e: unknown) {

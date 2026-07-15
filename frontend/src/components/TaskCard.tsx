@@ -85,7 +85,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
         <div className="flex gap-2 pt-4 border-t border-white/[0.05]">
           {isClaimer && (
             <button
-              onClick={() => act('claim', async () => await timeBankClient.claim_task({ task_id: BigInt(task.id), provider: pubKey }), `Task #${task.id} claimed! Start working and submit when done.`)}
+              onClick={() => act('claim', async () => await timeBankClient.claim_task({ task_id: BigInt(task.id), provider: pubKey }, { publicKey: pubKey }), `Task #${task.id} claimed! Start working and submit when done.`)}
               disabled={!!loading || isExpired}
               className="btn-blue text-xs py-1.5 px-4 flex items-center gap-1.5"
             >
@@ -95,7 +95,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {canSubmit && (
             <button
-              onClick={() => act('submit', async () => await timeBankClient.submit_work({ task_id: BigInt(task.id), provider: pubKey }), `Work submitted for task #${task.id}. Awaiting requester confirmation.`)}
+              onClick={() => act('submit', async () => await timeBankClient.submit_work({ task_id: BigInt(task.id), provider: pubKey }, { publicKey: pubKey }), `Work submitted for task #${task.id}. Awaiting requester confirmation.`)}
               disabled={!!loading}
               className="btn-gold text-xs py-1.5 px-4 flex items-center gap-1.5"
             >
@@ -105,7 +105,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {canConfirm && (
             <button
-              onClick={() => act('confirm', async () => await timeBankClient.confirm_completion({ task_id: BigInt(task.id), requester: pubKey }), `Task #${task.id} confirmed! ${task.hours} TIME credits transferred.`)}
+              onClick={() => act('confirm', async () => await timeBankClient.confirm_completion({ task_id: BigInt(task.id), requester: pubKey }, { publicKey: pubKey }), `Task #${task.id} confirmed! ${task.hours} TIME credits transferred.`)}
               disabled={!!loading}
               className="btn-gold text-xs py-1.5 px-4"
             >
@@ -114,7 +114,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {isRequester && task.status === 'Open' && !isExpired && (
             <button
-              onClick={() => act('cancel', async () => await timeBankClient.cancel_task({ task_id: BigInt(task.id), requester: pubKey }), `Task #${task.id} cancelled.`)}
+              onClick={() => act('cancel', async () => await timeBankClient.cancel_task({ task_id: BigInt(task.id), requester: pubKey }, { publicKey: pubKey }), `Task #${task.id} cancelled.`)}
               disabled={!!loading}
               className="btn-ghost text-xs py-1.5 px-3 border-white/20 text-muted hover:border-white/40"
             >
@@ -123,7 +123,7 @@ export default function TaskCard({ task, compact = false }: { task: Task; compac
           )}
           {canDispute && (
             <button
-              onClick={() => act('dispute', async () => await timeBankClient.dispute_task({ task_id: BigInt(task.id), caller: pubKey }), `Dispute raised for task #${task.id}.`)}
+              onClick={() => act('dispute', async () => await timeBankClient.dispute_task({ task_id: BigInt(task.id), caller: pubKey }, { publicKey: pubKey }), `Dispute raised for task #${task.id}.`)}
               disabled={!!loading}
               className="btn-ghost text-xs py-1.5 px-3 border-ruby/20 text-ruby hover:border-ruby/40"
             >
