@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2, Copy, ExternalLink, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { useChronoStore } from '../lib/store'
 import StandingBadge from '../components/StandingBadge'
@@ -24,11 +24,9 @@ export default function Profile() {
           const { address } = await kit.getAddress();
           setWallet(address);
 
-          // Use first mock profile as demo data for now (since we haven't wired up community ledger read yet)
-          const mock = MOCK_PROFILES[0]
-          setProfile({ ...mock, member: address })
-          setTimeBalance(24) // bootstrap balance
-          addToast('success', 'Freighter Wallet connected! You have 24 TIME credits.')
+          // Fetch real on-chain balance and data
+          await useChronoStore.getState().refreshData();
+          addToast('success', 'Wallet connected!')
         }
       });
     } catch (e: unknown) {
@@ -38,6 +36,23 @@ export default function Profile() {
       setLoading(false)
     }
   }
+
+  // Auto-reconnect: try to get address from Freighter on page load
+  useEffect(() => {
+    if (isConnected) return;
+    initWalletKit();
+    const kit = useChronoStore.getState().walletKit;
+    if (!kit) return;
+    kit.getAddress()
+      .then(async ({ address }) => {
+        if (address) {
+          setWallet(address);
+          await useChronoStore.getState().refreshData();
+        }
+      })
+      .catch(() => { /* Not connected, ignore */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const copy = (s: string) => { navigator.clipboard.writeText(s); addToast('info', 'Copied to clipboard') }
 
