@@ -3,12 +3,11 @@ import { Loader2, Copy, ExternalLink, TrendingUp, Clock, CheckCircle } from 'luc
 import { useChronoStore } from '../lib/store'
 import StandingBadge from '../components/StandingBadge'
 import ClockFace from '../components/ClockFace'
-import { MOCK_PROFILES } from '../lib/mockData'
 import { STANDING_META } from '../lib/constants'
 import { timeBankClient, signAndSubmit } from '../lib/contract'
 
 export default function Profile() {
-  const { isConnected, pubKey, setWallet, disconnect, setProfile, setTimeBalance, timeBalance, profile, addToast, initWalletKit } = useChronoStore()
+  const { isConnected, pubKey, setWallet, disconnect, timeBalance, profile, addToast, initWalletKit } = useChronoStore()
   const [loading, setLoading] = useState(false)
 
   const handleConnect = async () => {
