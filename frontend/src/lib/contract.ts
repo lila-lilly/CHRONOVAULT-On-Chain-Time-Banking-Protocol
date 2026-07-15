@@ -12,27 +12,41 @@ export const timeBankClient = new TimeBankClient({
 });
 
 /**
- * Sign and send a transaction using the connected Freighter wallet.
+ * Sign and send an AssembledTransaction using the connected Freighter wallet.
  * Returns the transaction hash if successful.
  */
 export async function signAndSubmit(txFn: () => Promise<unknown>): Promise<string> {
   const { walletKit, pubKey } = useChronoStore.getState();
   if (!walletKit || !pubKey) throw new Error("Wallet not connected");
 
-  // Build the transaction
-  const tx = (await txFn()) as { signAndSend: (opts: unknown) => Promise<unknown> };
+  // Build the assembled transaction (simulation happens inside txFn)
+  const assembled = (await txFn()) as {
+    sign: (opts: {
+      signTransaction: (xdr: string) => Promise<{ signedTxXdr: string; signerAddress?: string }>;
+    }) => Promise<void>;
+    send: () => Promise<unknown>;
+  };
 
-  // Prompt the wallet to sign and send the transaction
-  const result = await tx.signAndSend({
+  // Sign using the Freighter wallet
+  await assembled.sign({
     signTransaction: async (xdr: string) => {
       const response = await walletKit.signTransaction(xdr, {
         networkPassphrase: NETWORK_PASSPHRASE,
       });
-      // The wallet kit signTransaction returns `{ signedTxXdr }` or just the string depending on version.
-      return (response as { signedTxXdr?: string }).signedTxXdr || response;
-    }
-  }) as { hash?: string; id?: string };
+      // Freighter returns { signedTxXdr, signerAddress? }
+      if (typeof response === 'object' && response !== null && 'signedTxXdr' in response) {
+        return response as { signedTxXdr: string; signerAddress?: string };
+      }
+      return { signedTxXdr: response as unknown as string };
+    },
+  });
 
-  return result.hash || result.id || 'unknown';
+  // Submit the signed transaction to the network
+  const result = await assembled.send();
+
+  // Extract transaction hash from the response
+  const res = result as { hash?: string; sendTransactionResponse?: { hash?: string } };
+  const hash = res?.hash || res?.sendTransactionResponse?.hash || 'unknown';
+
+  return hash;
 }
-
