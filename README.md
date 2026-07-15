@@ -13,34 +13,6 @@ ChronoVault is a decentralized time banking protocol built on Stellar (Soroban).
 3. **Real Wallet Integration**: Full Freighter wallet support with live on-chain balance and cryptographic transaction signing on Stellar Testnet.
 4. **6-State Task Machine**: Open → Claimed → Submitted → Completed (with Cancel & Dispute branches), all enforced on-chain.
 
-## 🛠️ Tech Stack & Architecture
-- **Frontend**: React 18, TypeScript, Vite, Vanilla CSS (Glassmorphism / Midnight Clockwork UI)
-- **Blockchain**: Stellar Network, Soroban Smart Contracts (Rust)
-- **Wallet Integration**: `@creit.tech/stellar-wallets-kit`, `@stellar/stellar-sdk`
-- **CI/CD**: GitHub Actions (automated testing & deployments)
-- **Deployment**: Vercel
-
-## 🚀 Setup & Deployment
-
-**Run Locally**
-```bash
-# Install dependencies
-cd frontend
-npm install
-
-# Start development server
-npm run dev
-```
-
-**Run Tests**
-```bash
-# Smart Contract Tests (Rust)
-cd contracts
-cargo test -p time-bank --features testutils
-cargo test -p community-ledger --features testutils
-```
-
-
 ## 🔗 Deployed Contracts
 - **TimeBank**: `CDTHOHTPANEA5IODFI2C7TXGAPDLURCBZNB7MEOITBLXJNY2VAM2XAZO`
 - **CommunityLedger**: `CASUHYOA2PPKPIBAL7VI24Q76XOTXCLGTWYPYL3J7N5L4HDN6AC7QBDE`
@@ -69,3 +41,32 @@ Comprehensive Rust integration tests validating the smart contract logic.
 
 ### 5. Profile & Community Standing
 <img src="images/product profile.png" width="100%" alt="Profile Page" />
+
+---
+
+## 🛠️ Tech Stack & Architecture
+- **Frontend**: React 18, TypeScript, Vite, Vanilla CSS (Glassmorphism / Midnight Clockwork UI)
+- **Blockchain**: Stellar Network, Soroban Smart Contracts (Rust)
+- **Wallet Integration**: `@creit.tech/stellar-wallets-kit`, `@stellar/stellar-sdk`
+- **CI/CD**: GitHub Actions (automated testing & deployments)
+- **Deployment**: Vercel
+
+## 🚀 Setup & Deployment
+
+**Run Locally**
+```bash
+# Install dependencies
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+```
+
+**Run Tests**
+```bash
+# Smart Contract Tests (Rust)
+cd contracts
+cargo test -p time-bank --features testutils
+cargo test -p community-ledger --features testutils
+```
